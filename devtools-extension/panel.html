@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Baseline Check</title>
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      font-size: 12px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header {
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #202124;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .scan-btn {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .scan-btn:hover {
+      background: #1557b0;
+    }
+    
+    .scan-btn:disabled {
+      background: #9aa0a6;
+      cursor: not-allowed;
+    }
+    
+    .status-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 11px;
+      border-bottom: 1px solid #e0e0e0;
+      background: white;
+      flex-shrink: 0;
+    }
+    
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    
+    .status-safe { background: #34a853; }
+    .status-warning { background: #fbbc04; }
+    .status-danger { background: #ea4335; }
+    .status-unknown { background: #9aa0a6; }
+    
+    .content {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .summary {
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 16px;
+      flex-shrink: 0;
+    }
+    
+    .summary-stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .stat-number {
+      font-size: 20px;
+      font-weight: 600;
+      color: #202124;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #5f6368;
+      margin-top: 2px;
+    }
+    
+    .issues-container {
+      flex: 1;
+      overflow-y: auto;
+      background: #f9f9f9;
+    }
+    
+    .section-header {
+      background: #f1f3f4;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #e0e0e0;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    
+    .issue-item {
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+    
+    .issue-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .issue-item.critical::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #ea4335;
+    }
+    
+    .issue-item.warning::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #fbbc04;
+    }
+    
+    .issue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    
+    .issue-title {
+      font-weight: 500;
+      color: #202124;
+      font-size: 13px;
+    }
+    
+    .issue-severity {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    
+    .severity-critical {
+      background: #fce8e6;
+      color: #d93025;
+    }
+    
+    .severity-warning {
+      background: #fef7e0;
+      color: #e37400;
+    }
+    
+    .severity-info {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+    
+    .issue-description {
+      font-size: 12px;
+      color: #5f6368;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    
+    .issue-location {
+      font-size: 11px;
+      color: #9aa0a6;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+    
+    .issue-code {
+      background: #f8f9fa;
+      padding: 4px 6px;
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      color: #d93025;
+      margin-top: 6px;
+      display: inline-block;
+    }
+    
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #5f6368;
+      text-align: center;
+      padding: 32px;
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .empty-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #202124;
+    }
+    
+    .empty-subtitle {
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      flex-direction: column;
+      color: #5f6368;
+    }
+    
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #1a73e8;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .hidden { display: none; }
+    
+    .collapsible-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+    }
+    
+    .collapse-icon {
+      margin-right: 6px;
+      transition: transform 0.2s;
+    }
+    
+    .collapse-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+    
+    .collapsible-content {
+      transition: max-height 0.3s;
+      overflow: hidden;
+    }
+    
+    .collapsible-content.collapsed {
+      max-height: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎯 Baseline Check</h1>
+    <div class="controls">
+      <button class="scan-btn" id="scanBtn" onclick="scanPage()">
+        Scan Page
+      </button>
+    </div>
+  </div>
+  
+  <div class="status-bar" id="statusBar">
+    <div class="status-indicator status-unknown" id="statusIndicator"></div>
+    <span id="statusText">Ready to scan</span>
+  </div>
+  
+  <div class="content" id="content">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">Baseline Compatibility Checker</div>
+      <div class="empty-subtitle">
+        Click "Scan Page" to analyze this page for non-baseline web features.<br>
+        This will inspect HTML, CSS, and JavaScript for compatibility issues.
+      </div>
+    </div>
+    
+    <div class="loading hidden" id="loading">
+      <div class="spinner"></div>
+      <div>Scanning page for baseline compatibility...</div>
+    </div>
+    
+    <div class="summary hidden" id="summary">
+      <div class="summary-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="totalIssues">0</div>
+          <div class="stat-label">Issues</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="criticalIssues">0</div>
+          <div class="stat-label">Critical</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="warningIssues">0</div>
+          <div class="stat-label">Warnings</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="scannedElements">0</div>
+          <div class="stat-label">Elements</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="issues-container hidden" id="issuesContainer">
+      <div class="section-header collapsible-header" onclick="toggleSection('css-issues')">
+        <span class="collapse-icon" id="css-issues-icon">▼</span>
+        CSS Issues (<span id="cssIssueCount">0</span>)
+      </div>
+      <div class="collapsible-content" id="css-issues-content"></div>
+      
+      <div class="section-header collapsible-header" onclick="toggleSection('js-issues')">
+        <span class="collapse-icon" id="js-issues-icon">▼</span>
+        JavaScript Issues (<span id="jsIssueCount">0</span>)
+      </div>
+      <div class="collapsible-content" id="js-issues-content"></div>
+      
+      <div class="section-header collapsible-header" onclick="toggleSection('html-issues')">
+        <span class="collapse-icon" id="html-issues-icon">▼</span>
+        HTML Issues (<span id="htmlIssueCount">0</span>)
+      </div>
+      <div class="collapsible-content" id="html-issues-content"></div>
+    </div>
+  </div>
+
+  <script src="panel.js"></script>
+</body>
+</html>

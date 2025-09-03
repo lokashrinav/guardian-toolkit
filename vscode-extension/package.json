@@ -1,0 +1,94 @@
+{
+  "name": "baseline-completion-guard",
+  "displayName": "Baseline Completion Guard",
+  "description": "AI completion guard that warns about unsafe web features based on Baseline data",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Linters"
+  ],
+  "keywords": [
+    "baseline", 
+    "web-features",
+    "ai-completion",
+    "browser-support",
+    "safety"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript", 
+    "onLanguage:css",
+    "onLanguage:html"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "baseline-guard.checkFeature",
+        "title": "Check Web Feature Safety",
+        "category": "Baseline"
+      },
+      {
+        "command": "baseline-guard.rewriteUnsafe",
+        "title": "Rewrite Unsafe Features",
+        "category": "Baseline"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Baseline Guard Configuration",
+      "properties": {
+        "baselineGuard.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Baseline completion guard"
+        },
+        "baselineGuard.showInlineWarnings": {
+          "type": "boolean", 
+          "default": true,
+          "description": "Show inline warnings for unsafe features"
+        },
+        "baselineGuard.autoRewrite": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically suggest rewrites for unsafe features"
+        },
+        "baselineGuard.apiEndpoint": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Baseline API endpoint"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "baseline-guard.checkFeature",
+          "group": "baseline",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "baseline-guard.rewriteUnsafe", 
+          "group": "baseline",
+          "when": "editorHasSelection"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

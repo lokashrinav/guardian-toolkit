@@ -1,0 +1,199 @@
+name: Baseline Web Features Scanner
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  baseline-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm install
+        npm install -g eslint
+        
+    - name: Start Baseline API
+      run: |
+        node server.js &
+        sleep 5
+        # Test if API is running
+        curl http://localhost:3000/ || exit 1
+      
+    - name: Run ESLint with Baseline Plugin
+      run: |
+        # Install our ESLint plugin locally
+        cd eslint-plugin && npm install
+        cd ..
+        
+        # Run ESLint with JSON output
+        npx eslint --config eslint-plugin/.eslintrc.js \
+          --format json \
+          --output-file baseline-eslint-report.json \
+          "**/*.js" "**/*.ts" \
+          --ignore-pattern "node_modules/**" \
+          --ignore-pattern "dist/**" || true
+          
+    - name: Run Codemod Analysis
+      run: |
+        cd codemod
+        npm install
+        npm run build
+        
+        # Analyze all JS/TS files
+        npm run start analyze "../**/*.{js,ts}" \
+          --report \
+          --api http://localhost:3000 || true
+          
+        # Move report to root
+        mv baseline-analysis-report.json ../baseline-codemod-report.json || true
+        cd ..
+        
+    - name: Generate Combined Report
+      run: |
+        node -e "
+        const fs = require('fs');
+        
+        // Read reports
+        let eslintReport = [];
+        let codemodReport = {};
+        
+        try {
+          if (fs.existsSync('baseline-eslint-report.json')) {
+            eslintReport = JSON.parse(fs.readFileSync('baseline-eslint-report.json', 'utf8'));
+          }
+        } catch(e) { console.log('No ESLint report found'); }
+        
+        try {
+          if (fs.existsSync('baseline-codemod-report.json')) {
+            codemodReport = JSON.parse(fs.readFileSync('baseline-codemod-report.json', 'utf8'));
+          }
+        } catch(e) { console.log('No codemod report found'); }
+        
+        // Combine reports
+        const combinedReport = {
+          timestamp: new Date().toISOString(),
+          repository: process.env.GITHUB_REPOSITORY,
+          commit: process.env.GITHUB_SHA,
+          branch: process.env.GITHUB_REF_NAME,
+          eslint: {
+            totalFiles: eslintReport.length,
+            filesWithIssues: eslintReport.filter(f => f.messages.length > 0).length,
+            totalIssues: eslintReport.reduce((sum, f) => sum + f.messages.length, 0),
+            files: eslintReport.map(f => ({
+              file: f.filePath,
+              issues: f.messages.map(m => ({
+                line: m.line,
+                column: m.column,
+                message: m.message,
+                ruleId: m.ruleId,
+                severity: m.severity === 2 ? 'error' : 'warning'
+              }))
+            }))
+          },
+          codemod: codemodReport,
+          summary: {
+            totalIssues: (eslintReport.reduce((sum, f) => sum + f.messages.length, 0)) + (codemodReport.totalIssues || 0),
+            riskLevel: 'low' // Will be calculated based on findings
+          }
+        };
+        
+        // Calculate risk level
+        if (combinedReport.summary.totalIssues > 10) {
+          combinedReport.summary.riskLevel = 'high';
+        } else if (combinedReport.summary.totalIssues > 3) {
+          combinedReport.summary.riskLevel = 'medium';
+        }
+        
+        // Write combined report
+        fs.writeFileSync('baseline-scan-report.json', JSON.stringify(combinedReport, null, 2));
+        
+        console.log('📊 Baseline Scan Summary:');
+        console.log('Total Issues:', combinedReport.summary.totalIssues);
+        console.log('Risk Level:', combinedReport.summary.riskLevel);
+        console.log('ESLint Issues:', combinedReport.eslint.totalIssues);
+        console.log('Codemod Issues:', combinedReport.codemod.totalIssues || 0);
+        "
+        
+    - name: Upload Scan Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: baseline-scan-results
+        path: |
+          baseline-scan-report.json
+          baseline-eslint-report.json
+          baseline-codemod-report.json
+        retention-days: 30
+        
+    - name: Comment PR with Results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          if (!fs.existsSync('baseline-scan-report.json')) {
+            console.log('No scan report found');
+            return;
+          }
+          
+          const report = JSON.parse(fs.readFileSync('baseline-scan-report.json', 'utf8'));
+          
+          const riskEmoji = {
+            'low': '✅',
+            'medium': '⚠️', 
+            'high': '❌'
+          };
+          
+          const body = `## 🔍 Baseline Web Features Scan
+          
+          ${riskEmoji[report.summary.riskLevel]} **Risk Level: ${report.summary.riskLevel.toUpperCase()}**
+          
+          ### Summary
+          - **Total Issues**: ${report.summary.totalIssues}
+          - **ESLint Issues**: ${report.eslint.totalIssues}
+          - **Codemod Issues**: ${report.codemod.totalIssues || 0}
+          - **Files Scanned**: ${report.eslint.totalFiles}
+          
+          ${report.summary.totalIssues > 0 ? '### ⚠️ Non-baseline features detected that may not work in older browsers' : '### ✅ No baseline issues found'}
+          
+          <details>
+          <summary>View detailed report</summary>
+          
+          \`\`\`json
+          ${JSON.stringify(report, null, 2)}
+          \`\`\`
+          </details>
+          
+          ---
+          🤖 *Generated by Baseline Hackathon Scanner*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });
+          
+    - name: Fail on High Risk
+      if: always()
+      run: |
+        if [ -f baseline-scan-report.json ]; then
+          RISK_LEVEL=$(node -e "console.log(JSON.parse(require('fs').readFileSync('baseline-scan-report.json')).summary.riskLevel)")
+          echo "Risk level: $RISK_LEVEL"
+          if [ "$RISK_LEVEL" = "high" ]; then
+            echo "❌ High risk level detected - failing build"
+            exit 1
+          fi
+        fi

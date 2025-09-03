@@ -1,0 +1,27 @@
+{
+  "name": "baseline-feature-gate-worker",
+  "version": "1.0.0",
+  "description": "Runtime feature-gating CDN worker for baseline web features",
+  "main": "worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler publish",
+    "test": "node test/test-worker.js"
+  },
+  "keywords": [
+    "baseline",
+    "feature-gate", 
+    "cdn",
+    "cloudflare",
+    "edge",
+    "worker"
+  ],
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.22.1"
+  },
+  "author": "Baseline Hackathon",
+  "license": "MIT"
+}

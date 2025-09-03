@@ -1,0 +1,14 @@
+{
+  "name": "Baseline Web Features Checker",
+  "id": "baseline-checker",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "capabilities": [],
+  "enabledNodeTypes": ["*"],
+  "enablePrivatePluginApi": false,
+  "build": "build/",
+  "permissions": [
+    "currentuser"
+  ]
+}

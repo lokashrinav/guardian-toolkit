@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baseline Web Features Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #3b82f6;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #64748b;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        
+        .risk-low { color: #10b981; }
+        .risk-medium { color: #f59e0b; }
+        .risk-high { color: #ef4444; }
+        
+        .upload-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+        
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover { background: #2563eb; }
+        
+        .reports-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .reports-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .reports-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .report-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .report-item:hover {
+            background: #f8fafc;
+        }
+        
+        .report-item:last-child {
+            border-bottom: none;
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .report-title {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .report-risk {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .risk-low-bg { background: #d1fae5; color: #065f46; }
+        .risk-medium-bg { background: #fef3c7; color: #92400e; }
+        .risk-high-bg { background: #fee2e2; color: #991b1b; }
+        
+        .report-meta {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .report-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .report-stat {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80%;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        pre {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Baseline Dashboard</h1>
+            <p>Monitor web features compatibility across your projects</p>
+        </div>
+        
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total Reports</h3>
+                <div class="value" id="totalReports">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Issues</h3>
+                <div class="value" id="totalIssues">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Average Issues</h3>
+                <div class="value" id="averageIssues">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>High Risk Reports</h3>
+                <div class="value risk-high" id="highRisk">-</div>
+            </div>
+        </div>
+        
+        <div class="upload-section">
+            <h2>Upload Scan Report</h2>
+            <div class="upload-area" id="uploadArea">
+                <p>📄 Drag & drop your baseline-scan-report.json file here</p>
+                <p style="margin: 1rem 0;">or</p>
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <input type="file" id="fileInput" accept=".json" style="display: none">
+            </div>
+            <div id="uploadStatus"></div>
+        </div>
+        
+        <div class="reports-section">
+            <div class="reports-header">
+                <h2>Recent Reports</h2>
+                <button class="btn" onclick="loadReports()">🔄 Refresh</button>
+            </div>
+            <div class="reports-list" id="reportsList">
+                <div class="loading">Loading reports...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for detailed report view -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Report Details</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                Loading...
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

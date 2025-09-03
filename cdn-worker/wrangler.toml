@@ -1,0 +1,19 @@
+name = "baseline-feature-gate"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "baseline-feature-gate-prod"
+
+[env.staging]  
+name = "baseline-feature-gate-staging"
+
+# Example KV namespaces for storing feature data
+# [[kv_namespaces]]
+# binding = "FEATURES"
+# id = "your-kv-namespace-id"
+# preview_id = "your-preview-kv-namespace-id"
+
+# Environment variables
+# [vars]
+# API_BASE_URL = "https://your-baseline-api.com"

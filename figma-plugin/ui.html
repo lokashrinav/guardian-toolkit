@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Baseline Checker</title>
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      margin: 0;
+      padding: 16px;
+      background: #f8f9fa;
+      color: #1a1a1a;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e1e5e9;
+    }
+    
+    .header h1 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+      color: #1a1a1a;
+    }
+    
+    .scan-button {
+      background: #18a0fb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .scan-button:hover {
+      background: #0c8ce9;
+    }
+    
+    .scan-button:disabled {
+      background: #b3b3b3;
+      cursor: not-allowed;
+    }
+    
+    .status {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 11px;
+      text-align: center;
+    }
+    
+    .status.scanning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    
+    .status.complete {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .summary {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .summary-header {
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .risk-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    .risk-high { background: #dc3545; }
+    .risk-medium { background: #fd7e14; }
+    .risk-low { background: #28a745; }
+    .risk-none { background: #6c757d; }
+    
+    .summary-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 18px;
+      font-weight: 600;
+      display: block;
+    }
+    
+    .stat-label {
+      color: #6c757d;
+      margin-top: 2px;
+    }
+    
+    .recommendations {
+      font-size: 11px;
+      color: #495057;
+      line-height: 1.4;
+    }
+    
+    .issues-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .issue-item {
+      background: white;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      border-left: 3px solid;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .issue-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .issue-item.high { border-left-color: #dc3545; }
+    .issue-item.medium { border-left-color: #fd7e14; }
+    .issue-item.low { border-left-color: #28a745; }
+    
+    .issue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    
+    .issue-title {
+      font-weight: 600;
+      font-size: 11px;
+    }
+    
+    .issue-risk {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    
+    .issue-risk.high {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .issue-risk.medium {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .issue-risk.low {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .issue-message {
+      font-size: 11px;
+      color: #495057;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    
+    .issue-node {
+      font-size: 10px;
+      color: #6c757d;
+      margin-bottom: 6px;
+    }
+    
+    .issue-recommendation {
+      font-size: 10px;
+      color: #0c8ce9;
+      font-style: italic;
+      line-height: 1.3;
+    }
+    
+    .css-property {
+      background: #f8f9fa;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 10px;
+      color: #e83e8c;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #6c757d;
+    }
+    
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    
+    .progress {
+      width: 100%;
+      height: 4px;
+      background: #e9ecef;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: #18a0fb;
+      transition: width 0.3s;
+      width: 0%;
+    }
+    
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎯 Baseline Checker</h1>
+    <button class="scan-button" id="scanBtn" onclick="scanDocument()">
+      Scan Design
+    </button>
+  </div>
+  
+  <div id="status" class="status hidden"></div>
+  
+  <div id="progress" class="progress hidden">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  
+  <div id="summary" class="summary hidden">
+    <div class="summary-header">
+      <span>📊 Scan Results</span>
+      <span class="risk-indicator" id="overallRisk"></span>
+    </div>
+    
+    <div class="summary-stats">
+      <div class="stat-item">
+        <span class="stat-number" id="totalIssues">0</span>
+        <span class="stat-label">Issues</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="highRisk">0</span>
+        <span class="stat-label">High Risk</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="scannedNodes">0</span>
+        <span class="stat-label">Layers</span>
+      </div>
+    </div>
+    
+    <div class="recommendations" id="recommendations"></div>
+  </div>
+  
+  <div id="issues" class="issues-list hidden"></div>
+  
+  <div id="emptyState" class="empty-state">
+    <div class="empty-icon">🎨</div>
+    <div>Click "Scan Design" to check your layers for baseline compatibility issues.</div>
+    <br>
+    <div style="font-size: 10px; color: #999;">
+      This plugin will detect CSS features that may not work in older browsers.
+    </div>
+  </div>
+
+  <script>
+    let isScanning = false;
+    
+    function scanDocument() {
+      if (isScanning) return;
+      
+      isScanning = true;
+      document.getElementById('scanBtn').textContent = 'Scanning...';
+      document.getElementById('scanBtn').disabled = true;
+      
+      showStatus('Scanning your design for baseline compatibility issues...', 'scanning');
+      showProgress();
+      hideElements(['summary', 'issues', 'emptyState']);
+      
+      parent.postMessage({ pluginMessage: { type: 'scan-document' } }, '*');
+    }
+    
+    function selectNode(nodeId) {
+      parent.postMessage({ pluginMessage: { type: 'select-node', nodeId } }, '*');
+    }
+    
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status ${type}`;
+      status.classList.remove('hidden');
+    }
+    
+    function hideStatus() {
+      document.getElementById('status').classList.add('hidden');
+    }
+    
+    function showProgress() {
+      document.getElementById('progress').classList.remove('hidden');
+    }
+    
+    function updateProgress(percentage) {
+      document.getElementById('progressBar').style.width = percentage + '%';
+    }
+    
+    function hideProgress() {
+      document.getElementById('progress').classList.add('hidden');
+    }
+    
+    function hideElements(ids) {
+      ids.forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+    }
+    
+    function showElements(ids) {
+      ids.forEach(id => {
+        document.getElementById(id).classList.remove('hidden');
+      });
+    }
+    
+    function updateSummary(summary) {
+      document.getElementById('totalIssues').textContent = summary.total;
+      document.getElementById('highRisk').textContent = summary.byRisk.high;
+      document.getElementById('scannedNodes').textContent = summary.scannedNodes || 0;
+      
+      // Update overall risk indicator
+      const overallRisk = document.getElementById('overallRisk');
+      if (summary.byRisk.high > 0) {
+        overallRisk.className = 'risk-indicator risk-high';
+      } else if (summary.byRisk.medium > 0) {
+        overallRisk.className = 'risk-indicator risk-medium';
+      } else if (summary.total > 0) {
+        overallRisk.className = 'risk-indicator risk-low';
+      } else {
+        overallRisk.className = 'risk-indicator risk-none';
+      }
+      
+      // Update recommendations
+      const recommendationsEl = document.getElementById('recommendations');
+      if (summary.recommendations && summary.recommendations.length > 0) {
+        recommendationsEl.innerHTML = summary.recommendations.map(rec => 
+          `💡 ${rec}`
+        ).join('<br>');
+      } else {
+        recommendationsEl.innerHTML = '✅ No specific recommendations at this time.';
+      }
+    }
+    
+    function renderIssues(issues) {
+      const issuesContainer = document.getElementById('issues');
+      
+      if (issues.length === 0) {
+        issuesContainer.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #28a745;">
+            <div style="font-size: 24px; margin-bottom: 8px;">✅</div>
+            <div>Great! No baseline compatibility issues found.</div>
+          </div>
+        `;
+      } else {
+        issuesContainer.innerHTML = issues.map(issue => `
+          <div class="issue-item ${issue.risk}" onclick="selectNode('${issue.node.id}')">
+            <div class="issue-header">
+              <div class="issue-title">${issue.feature}</div>
+              <div class="issue-risk ${issue.risk}">${issue.risk}</div>
+            </div>
+            <div class="issue-message">${issue.message}</div>
+            <div class="issue-node">
+              📄 ${issue.node.page} › ${issue.node.name} (${issue.node.type})
+            </div>
+            ${issue.cssProperty ? `<div class="css-property">${issue.cssProperty}</div>` : ''}
+            <div class="issue-recommendation">${issue.recommendation}</div>
+          </div>
+        `).join('');
+      }
+    }
+    
+    // Message handler
+    window.onmessage = (event) => {
+      const { type, issues, summary, scanned } = event.data.pluginMessage;
+      
+      switch (type) {
+        case 'scan-started':
+          updateProgress(0);
+          break;
+          
+        case 'scan-progress':
+          // Update progress based on scanned nodes (approximate)
+          updateProgress(Math.min((scanned / 500) * 100, 90));
+          break;
+          
+        case 'scan-complete':
+          isScanning = false;
+          document.getElementById('scanBtn').textContent = 'Scan Design';
+          document.getElementById('scanBtn').disabled = false;
+          
+          hideProgress();
+          hideStatus();
+          
+          updateSummary({ ...summary, scannedNodes: scanned });
+          renderIssues(issues);
+          
+          showElements(['summary', 'issues']);
+          hideElements(['emptyState']);
+          
+          if (issues.length === 0) {
+            showStatus('✅ No baseline compatibility issues found!', 'complete');
+          } else {
+            showStatus(`⚠️ Found ${issues.length} potential compatibility issue${issues.length === 1 ? '' : 's'}`, 'complete');
+          }
+          break;
+          
+        case 'scan-error':
+          isScanning = false;
+          document.getElementById('scanBtn').textContent = 'Scan Design';
+          document.getElementById('scanBtn').disabled = false;
+          
+          hideProgress();
+          showStatus('❌ Error during scan. Please try again.', 'error');
+          break;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "baseline-web-features": {
+      "command": "node",
+      "args": ["mcp-server.js"],
+      "cwd": ".",
+      "env": {}
+    }
+  }
+}

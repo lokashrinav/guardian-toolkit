@@ -1,0 +1,30 @@
+{
+  "name": "dependency-radar",
+  "version": "1.0.0",
+  "description": "CLI tool to scan dependencies for non-baseline web features",
+  "main": "index.js",
+  "bin": {
+    "dep-radar": "./bin/dep-radar.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test/test-radar.js"
+  },
+  "keywords": [
+    "dependency",
+    "radar",
+    "baseline",
+    "web-features",
+    "cli",
+    "scanner"
+  ],
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "axios": "^1.6.0",
+    "glob": "^10.3.0",
+    "semver": "^7.5.4"
+  },
+  "author": "Baseline Hackathon",
+  "license": "MIT"
+}

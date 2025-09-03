@@ -1,0 +1,268 @@
+/* Baseline Code Annotation Styles */
+
+.baseline-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1000;
+  cursor: pointer;
+  user-select: none;
+}
+
+.baseline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  font-size: 8px;
+  line-height: 12px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.baseline-indicator:hover .baseline-dot {
+  transform: scale(1.2);
+}
+
+/* Risk level colors */
+.baseline-safe .baseline-dot {
+  background: #34a853;
+  color: white;
+}
+
+.baseline-low .baseline-dot {
+  background: #fbbc04;
+  color: black;
+}
+
+.baseline-medium .baseline-dot {
+  background: #ff9800;
+  color: white;
+}
+
+.baseline-high .baseline-dot {
+  background: #ea4335;
+  color: white;
+}
+
+/* Tooltip styles */
+.baseline-tooltip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 300px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  pointer-events: none;
+}
+
+.baseline-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  right: 6px;
+  border: 6px solid transparent;
+  border-bottom-color: white;
+}
+
+.tooltip-header {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 600;
+  color: #202124;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.tooltip-body {
+  padding: 12px;
+  color: #5f6368;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tooltip-footer {
+  padding: 8px 12px;
+  border-top: 1px solid #f0f0f0;
+  background: #f8f9fa;
+  text-align: center;
+  border-radius: 0 0 8px 8px;
+}
+
+.tooltip-footer small {
+  color: #9aa0a6;
+  font-size: 10px;
+}
+
+.features-list {
+  margin: 0;
+}
+
+.feature-item {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.feature-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.feature-item strong {
+  color: #202124;
+  text-transform: capitalize;
+}
+
+.feature-item small {
+  color: #5f6368;
+  display: block;
+  margin-top: 2px;
+}
+
+.more-features {
+  text-align: center;
+  color: #5f6368;
+  font-style: italic;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Site-specific adjustments */
+
+/* MDN */
+body[data-mdn] .baseline-indicator {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+/* Stack Overflow */
+.s-code-block {
+  position: relative;
+}
+
+.post-text pre {
+  position: relative;
+}
+
+/* GitHub */
+.highlight {
+  position: relative;
+}
+
+.blob-wrapper {
+  position: relative;
+}
+
+/* CodePen */
+.editor-pane {
+  position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .baseline-tooltip {
+    width: 250px;
+    right: -8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .baseline-tooltip {
+    width: 200px;
+    font-size: 11px;
+  }
+  
+  .baseline-dot {
+    width: 10px;
+    height: 10px;
+    font-size: 7px;
+    line-height: 10px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .baseline-tooltip {
+    background: #2d2d2d;
+    border-color: #4a4a4a;
+    color: #e0e0e0;
+  }
+  
+  .tooltip-header,
+  .tooltip-footer {
+    background: #3a3a3a;
+    color: #ffffff;
+  }
+  
+  .tooltip-body {
+    color: #b0b0b0;
+  }
+  
+  .feature-item {
+    border-bottom-color: #4a4a4a;
+  }
+  
+  .feature-item strong {
+    color: #ffffff;
+  }
+  
+  .more-features {
+    border-top-color: #4a4a4a;
+    color: #b0b0b0;
+  }
+  
+  .baseline-tooltip::before {
+    border-bottom-color: #2d2d2d;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .baseline-dot {
+    border: 2px solid currentColor;
+  }
+  
+  .baseline-tooltip {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Animation for newly added indicators */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.baseline-indicator {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+/* Ensure indicators don't interfere with code selection */
+.baseline-indicator {
+  pointer-events: auto;
+}
+
+.baseline-tooltip {
+  pointer-events: none;
+}

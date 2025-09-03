@@ -1,0 +1,92 @@
+# --- General ---
+# Dependencies
+node_modules/
+
+# Logs and caches
+logs/
+*.log
+*.log.*
+.npm/_logs/
+.npmrc.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+.cache/
+.tmp/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Coverage / test artifacts
+coverage/
+.nyc_output/
+jest-cache/
+jest-report/
+.vscode-test/
+
+# Build outputs (keep source libs; only ignore typical build folders)
+dist/
+build/
+out/
+*.tsbuildinfo
+# If maps are generated under lib, ignore only maps (keep JS/TS sources)
+lib/**/*.map
+
+# Editor/project files
+.vscode/
+.history/
+*.code-workspace
+.idea/
+
+# Package managers (keep lockfiles by default)
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.yarnrc.yml
+.pnpm-store/
+
+# Tool-specific
+.parcel-cache/
+.vite/
+webpack-stats.json
+.esbuild/
+
+# Browser/DevTools extensions build outputs
+browser-extension/build/
+devtools-extension/build/
+
+# VS Code extension packaging
+*.vsix
+vscode-extension/out/
+
+# Figma plugin build output
+figma-plugin/build/
+
+# Cloudflare Workers / Wrangler
+.wrangler/
+.cloudflare/
+.workers/
+cdn-worker/.wrangler/
+cdn-worker/dist/
+cdn-worker/.dev.vars
+
+# Serverless/hosting (if added later)
+.vercel/
+.netlify/
+
+# Temp
+tmp/
+temp/

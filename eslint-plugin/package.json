@@ -1,0 +1,24 @@
+{
+  "name": "eslint-plugin-baseline",
+  "version": "1.0.0",
+  "description": "ESLint plugin to detect non-baseline web features",
+  "main": "index.js",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "baseline",
+    "web-features",
+    "browser-compatibility"
+  ],
+  "author": "Baseline Hackathon",
+  "license": "MIT",
+  "peerDependencies": {
+    "eslint": ">=7.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
