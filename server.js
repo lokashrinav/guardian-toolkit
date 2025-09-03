@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 });
 
 // Main endpoint: Check if a feature is safe to use
-app.post('/isSafe', (req, res) => {
+app.post('/isSafe', async (req, res) => {
     try {
         const { feature } = req.body;
 
@@ -37,7 +37,7 @@ app.post('/isSafe', (req, res) => {
         }
 
         // Check the feature
-        const result = checkFeature(feature);
+        const result = await checkFeature(feature);
 
         // Format response based on safety
         const response = {
@@ -67,10 +67,10 @@ app.post('/isSafe', (req, res) => {
 });
 
 // Additional endpoint: Get detailed feature information
-app.get('/features/:name', (req, res) => {
+app.get('/features/:name', async (req, res) => {
     try {
         const featureName = req.params.name;
-        const result = checkFeature(featureName);
+        const result = await checkFeature(featureName);
 
         if (!result.found) {
             return res.status(404).json(result);

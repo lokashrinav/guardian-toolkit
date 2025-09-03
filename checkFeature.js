@@ -1,23 +1,34 @@
-const webFeatures = require('web-features');
+let webFeatures = null;
+
+// Initialize web-features module
+async function initWebFeatures() {
+    if (!webFeatures) {
+        webFeatures = await import('web-features');
+    }
+    return webFeatures;
+}
 
 /**
  * Check if a web feature is safe to use based on Baseline data
  * @param {string} featureName - The name of the web feature to check
- * @returns {Object} - Feature safety information
+ * @returns {Promise<Object>} - Feature safety information
  */
-function checkFeature(featureName) {
+async function checkFeature(featureName) {
+    // Initialize web-features module
+    const webFeaturesModule = await initWebFeatures();
+    
     // Normalize feature name (lowercase, handle variations)
     const normalizedName = featureName.toLowerCase().trim();
     
     // Check if feature exists in web-features data
-    const feature = webFeatures.features[normalizedName];
+    const feature = webFeaturesModule.features[normalizedName];
     
     if (!feature) {
         return {
             found: false,
             feature: normalizedName,
             message: `Feature "${featureName}" not found in web-features database`,
-            suggestions: findSimilarFeatures(normalizedName)
+            suggestions: await findSimilarFeatures(normalizedName, webFeaturesModule)
         };
     }
 
@@ -59,10 +70,11 @@ function checkFeature(featureName) {
 /**
  * Find similar features for suggestions when a feature is not found
  * @param {string} searchTerm - The search term
+ * @param {Object} webFeaturesModule - The web-features module
  * @returns {Array} - Array of similar feature names
  */
-function findSimilarFeatures(searchTerm) {
-    const allFeatures = Object.keys(webFeatures.features);
+function findSimilarFeatures(searchTerm, webFeaturesModule) {
+    const allFeatures = Object.keys(webFeaturesModule.features);
     const suggestions = allFeatures
         .filter(name => name.includes(searchTerm) || searchTerm.includes(name))
         .slice(0, 5);
